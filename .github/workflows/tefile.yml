@@ -17,7 +17,7 @@ jobs:
   
       - name: Login
         run : |
-          docker login --username b3h1m0th --password ${{ secrets.GHCR3 }} ghcr.io
+          docker login --username v3r0n1c4-dev --password ${{ secrets.GHCR3 }} ghcr.io
           
       - name: ls commit and tag the image
         run : |
