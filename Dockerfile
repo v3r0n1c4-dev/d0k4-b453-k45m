@@ -262,7 +262,6 @@ RUN \
     containerd.io \
     cups \
     cups-client \
-    cups-pdf \
     docker-ce \
     docker-ce-cli \
     docker-buildx-plugin \
