@@ -89,7 +89,9 @@ RUN \
     xfonts-base \
     xinit \
     xkb-data \
-    xserver-xorg-dev
+    xserver-xorg-dev \
+    gettext \
+    m4
 
 RUN \
   echo "**** build libjpeg-turbo ****" && \
@@ -118,6 +120,13 @@ RUN \
     -e '/find_package(FLTK/s@^@#@' \
     -e '/add_subdirectory(tests/s@^@#@' \
     CMakeLists.txt && \
+  # Update deprecated macros in configure scripts
+  find . -type f -name 'configure.ac' -o -name 'configure.in' | xargs sed -i \
+    -e 's/AM_CONFIG_HEADER/AC_CONFIG_HEADERS/g' \
+    -e 's/AC_PROG_LIBTOOL/LT_INIT/g' \
+    -e 's/AM_PROG_LIBTOOL/LT_INIT/g' \
+    -e 's/AC_CONFIG_HEADER/AC_CONFIG_HEADERS/g' \
+    -e 's/AC_CONFIG_HEADER/AC_CONFIG_HEADERS/g' && \
   cmake \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DBUILD_VIEWER:BOOL=OFF \
@@ -135,12 +144,12 @@ RUN \
   cd unix/xserver && \
   patch -Np1 -i ../xserver21.patch && \
   patch -s -p0 < ../CVE-2022-2320-v1.20.patch && \
-  autoreconf -i && \
+  autoreconf -fi && \
   ./configure --prefix=/opt/kasmweb \
     --with-xkb-path=/usr/share/X11/xkb \
     --with-xkb-output=/var/lib/xkb \
     --with-xkb-bin-directory=/usr/bin \
-    --with-default-font-path="/usr/share/fonts/X11/misc,/usr/share/fonts/X11/cyrillic,/usr/share/fonts/X11/100dpi/:unscaled,/usr/share/fonts/X11/75dpi/:unscaled,/usr/share/fonts/X11/Type1,/usr/share/fonts/X11/100dpi,/usr/share/fonts/X11/75dpi,built-ins" \
+    --with-default-font-path="/usr/share/fonts/X11/misc,/usr/share/fonts/X11/cyrillic,/usr/share/fonts/X11/100dpi/:unscaled,/usr/share/fonts/X11/75dpi/:unscaled,/usr/share/fonts/X11/Type1,/usr/share/fonts/X11/TTF,/usr/share/fonts/X11/OTF,/usr/share/fonts/X11/Speedo,/usr/share/fonts/X11/util,/usr/share/fonts/truetype,/usr/local/share/fonts" \
     --with-sha1=libcrypto \
     --without-dtrace --disable-dri \
     --disable-static \
@@ -242,7 +251,10 @@ ENV DISPLAY=:1 \
     HOME=/config \
     START_DOCKER=true \
     PULSE_RUNTIME_PATH=/defaults \
-    NVIDIA_DRIVER_CAPABILITIES=all
+    NVIDIA_DRIVER_CAPABILITIES=all \
+    LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8
 
 # copy over build output
 COPY --from=nodebuilder /kclient /kclient
@@ -308,6 +320,7 @@ RUN \
     libxshmfence1 \
     libxtst6 \
     libyaml-tiny-perl \
+    locales \
     locales-all \
     mesa-va-drivers \
     mesa-vulkan-drivers \
@@ -347,9 +360,8 @@ RUN \
     xutils \
     zlib1g && \
   echo "**** printer config ****" && \
-  sed -i -r \
-    -e "s:^(Out\s).*:\1/home/kasm-user/PDF:" \
-    /etc/cups/cups-pdf.conf && \
+  # Remove cups-pdf installation and config steps
+  echo "Skipping cups-pdf setup, not installing cups-pdf." && \
   echo "**** filesystem setup ****" && \
   ln -s /usr/local/share/kasmvnc /usr/share/kasmvnc && \
   ln -s /usr/local/etc/kasmvnc /etc/kasmvnc && \
@@ -404,9 +416,8 @@ RUN \
   echo 'hosts: files dns' > /etc/nsswitch.conf && \
   usermod -aG docker abc && \
   echo "**** locales ****" && \
-  for LOCALE in $(curl -sL https://raw.githubusercontent.com/thelamer/lang-stash/master/langs); do \
-    localedef -i $LOCALE -f UTF-8 $LOCALE.UTF-8; \
-  done && \
+  locale-gen en_US.UTF-8 && \
+  update-locale LANG=en_US.UTF-8 && \
   echo "**** theme ****" && \
   curl -s https://raw.githubusercontent.com/thelamer/lang-stash/master/theme.tar.gz \
     | tar xzvf - -C /usr/share/themes/Clearlooks/openbox-3/ && \
