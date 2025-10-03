@@ -1,4 +1,4 @@
-name: build and push to ghcr
+name: tefile
 
 on:
   workflow_dispatch:
