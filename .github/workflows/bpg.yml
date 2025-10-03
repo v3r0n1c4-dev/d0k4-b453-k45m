@@ -17,14 +17,14 @@ jobs:
   
       - name: Login
         run : |
-          docker login --username b3h1m0th --password ${{ secrets.GHCR }} ghcr.io
+          docker login --username v3r0n1c4-dev --password ${{ secrets.GHCR3 }} ghcr.io
           
       - name: ls commit and tag the image
         run : |
           docker images
-          docker tag rem1x:deb ghcr.io/b3h1m0th/b453:ubun2n0bl3
+          docker tag rem1x:deb ghcr.io/v3r0n1c4-dev/b453:ubun2n0bl3
           
       - name: Push the image
         run : |
-          docker push ghcr.io/b3h1m0th/b453:ubun2n0bl3
+          docker push ghcr.io/v3r0n1c4-dev/b453:ubun2n0bl3
           
