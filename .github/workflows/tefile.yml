@@ -22,9 +22,9 @@ jobs:
       - name: ls commit and tag the image
         run : |
           docker images
-          docker tag rem1x:deb ghcr.io/v3r0n1c4-dev/b453:tefile
+          docker tag rem1x:deb ghcr.io/v3r0n1c4-dev/b453:tefilev1
           
       - name: Push the image
         run : |
-          docker push ghcr.io/v3r0n1c4-dev/b453:tefile
+          docker push ghcr.io/v3r0n1c4-dev/b453:tefilev1
           
