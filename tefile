@@ -1,21 +1,43 @@
+# -------------------------------------------------
+# Base image
+# -------------------------------------------------
 FROM kalilinux/kali-rolling
 
-# Update package list and install systemd, XFCE, etc.
+# -------------------------------------------------
+# Install core packages
+# -------------------------------------------------
 RUN apt-get update && \
-    apt-get install -y systemd systemd-sysv xfce4 xfce4-goodies novnc websockify wget && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        systemd systemd-sysv \
+        xfce4 xfce4-goodies \
+        novnc websockify \
+        wget && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Download and install RustDesk
-RUN wget https://github.com/rustdesk/rustdesk/releases/download/1.4.2/rustdesk-1.4.2-x86_64.deb && \
-    dpkg -i rustdesk-1.4.2-x86_64.deb || apt-get -y install -f && \
-    rm rustdesk-1.4.2-x86_64.deb
+# -------------------------------------------------
+# Install RustDesk
+# -------------------------------------------------
+ARG RUSTDESK_VERSION=1.4.2
+RUN wget https://github.com/rustdesk/rustdesk/releases/download/${RUSTDESK_VERSION}/rustdesk-${RUSTDESK_VERSION}-x86_64.deb && \
+    dpkg -i rustdesk-${RUSTDESK_VERSION}-x86_64.deb || apt-get -y install -f && \
+    rm rustdesk-${RUSTDESK_VERSION}-x86_64.deb
 
-# Create a volume for the systemd units
-VOLUME [ "/sys/fs/cgroup" ]
+# -------------------------------------------------
+# Create required mount points
+# -------------------------------------------------
+VOLUME ["/sys/fs/cgroup"]
 
-# Expose the noVNC web interface port
+# noVNC will serve the desktop on this port
 EXPOSE 6080
 
-# Start systemd and noVNC
-CMD ["/lib/systemd/systemd"]
+# -------------------------------------------------
+# Entrypoint script – start systemd and VNC
+# -------------------------------------------------
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# -------------------------------------------------
+# Default command
+# -------------------------------------------------
+CMD ["/usr/local/bin/entrypoint.sh"]
